@@ -6,6 +6,11 @@
 </head>
 
 <body>
+    {% if session.user %}
+    <h2>Logged in as <i>{{ session.user }}</i>. <a href="/logout">Logout</a></h2>
+    {% else %}
+    <h2><a href="/login">Login</a>, <a href="/register">Register</a></h2>
+    {% endif %}
     <h1>Channel <i>{{ channel }}</i>, {{ count }} messages.</h1>
     {% for message in messages %}
     <p><i>{{ message[0] }}</i>: <b>{{ message[1] }}</b></p>

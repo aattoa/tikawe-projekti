@@ -13,15 +13,15 @@ def connect():
 def execute(sql, params=None):
     db = connect()
     try:
-        db.execute(sql, params)
+        db.execute(sql, [] if params is None else params)
         db.commit()
     finally:
         db.close()
 
-def query(sql):
+def query(sql, params=None):
     db = connect()
     try:
-        results = db.execute(sql).fetchall()
+        results = db.execute(sql, [] if params is None else params).fetchall()
     finally:
         db.close()
     return results
@@ -40,6 +40,7 @@ if not os.path.exists(DB):
             ''')
 
 app = flask.Flask(__name__)
+app.secret_key = 'TODO: maybe consider setting a proper value for this'
 
 @app.route('/channel/<name>')
 def channel(name):
@@ -67,4 +68,26 @@ def api_register():
     except sqlite3.IntegrityError:
         return 'Username already taken'
 
-    return flask.redirect("/")
+    return flask.redirect('/')
+
+@app.route('/login')
+def login():
+    return flask.render_template('login.html')
+
+@app.route('/api/login', methods=['POST'])
+def api_login():
+    username = flask.request.form['username']
+    password = flask.request.form['password']
+
+    sql = 'SELECT password_hash FROM users WHERE username = ?'
+    password_hash = query(sql, [username])[0][0]
+
+    if werkzeug.security.check_password_hash(password_hash, password):
+        flask.session['user'] = username
+        return flask.redirect('/')
+    return 'Invalid username or password!'
+
+@app.route('/logout')
+def api_logout():
+    del flask.session['user']
+    return flask.redirect('/')
