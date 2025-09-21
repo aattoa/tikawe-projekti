@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>{{ channel }}</title>
+</head>
+
+<body>
+    <h1>Channel <i>{{ channel }}</i>, {{ count }} messages.</h1>
+    {% for message in messages %}
+    <p><i>{{ message[0] }}</i>: <b>{{ message[1] }}</b></p>
+    {% endfor %}
+</body>
+
+</html>
