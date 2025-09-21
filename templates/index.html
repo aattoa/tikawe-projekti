@@ -19,20 +19,36 @@
     </form>
     <h1>Channel <i>{{ channel }}</i>, {{ count }} messages.</h1>
     {% for message in messages %}
-    <p>
-        <i>{{ message[1] }}</i>: <b>{{ message[2] }}</b>
+    <div class="msg">
+        <i class="msg-part">{{ message[1] }}</i>: <b>{{ message[2] }}</b>
         {% if session.user == message[1] %}
-        <a href="/edit/{{ message[0] }}"><small>edit</small></a>
-        <a href="/api/delete/{{ message[0] }}"><small>delete</small></a>
+        <form class="msg-part" action="/edit/{{ message[0] }}">
+            <input type="hidden" name="csrf" value="{{ session.csrf }}" />
+            <input type="submit" value="Edit" />
+        </form>
+        <form class="msg-part" action="/api/delete/{{ message[0] }}" method="post">
+            <input type="hidden" name="csrf" value="{{ session.csrf }}" />
+            <input type="submit" value="Delete" />
+        </form>
         {% endif %}
-    </p>
+    </div>
     {% endfor %}
     {% if session.user %}
     <form action="/api/post/{{ channel }}" method="post">
         <p>Create a new post: <input name="content" /></p>
+        <input type="hidden" name="csrf" value="{{ session.csrf }}" />
         <input type="submit" value="Post" />
     </form>
     {% endif %}
 </body>
+
+<style>
+.msg {
+    display: table;
+}
+.msg-part {
+    display: table-cell;
+}
+</style>
 
 </html>
