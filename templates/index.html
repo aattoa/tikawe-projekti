@@ -12,8 +12,10 @@
     <h2><a href="/login">Login</a>, <a href="/register">Register</a></h2>
     {% endif %}
     <form action="/api/channel_search" method="post">
-        <p>Search for a channel: <input name="search_term" /></p>
-        <input type="submit" value="Search" />
+        <p>
+            Search for a channel or create a new one: <input name="search_term" />
+            <input type="submit" value="Search" />
+        </p>
     </form>
     <h1>Channel <i>{{ channel }}</i>, {{ count }} messages.</h1>
     {% for message in messages %}

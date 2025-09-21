@@ -126,4 +126,4 @@ def api_channel_search():
     sql = 'SELECT DISTINCT channel FROM messages WHERE instr(channel, ?) > 0'
     search_term = flask.request.form['search_term']
     channels = query(sql, [search_term])
-    return flask.render_template('channel_search.html', channels=channels, search_term=search_term)
+    return flask.render_template('channel_search.html', new=not channels, channels=channels, search_term=search_term)

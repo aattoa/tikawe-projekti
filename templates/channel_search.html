@@ -6,6 +6,9 @@
 </head>
 
 <body>
+    {% if new %}
+    No channels matched <i>'{{ search_term }}'</i>. <a href="/channel/{{ search_term }}">Create a new channel?</a>
+    {% else %}
     {% if search_term == '' %}
     All channels:
     {% else %}
@@ -16,6 +19,7 @@
     <li><a href="/channel/{{ channel[0] }}"><b>{{ channel[0] }}</b></a></li>
     {% endfor %}
     </ul>
+    {% endif %}
 </body>
 
 </html>
