@@ -1,4 +1,3 @@
-import os.path
 import sqlite3
 import flask
 import werkzeug.security
@@ -25,20 +24,6 @@ def query(sql, params=None):
     finally:
         db.close()
     return results
-
-if not os.path.exists(DB):
-    execute('''
-            CREATE TABLE users
-            ( username TEXT PRIMARY KEY NOT NULL
-            , password_hash TEXT NOT NULL);
-            ''')
-    execute('''
-            CREATE TABLE messages
-            ( username TEXT NOT NULL
-            , content TEXT NOT NULL
-            , channel TEXT NOT NULL
-            , FOREIGN KEY (username) REFERENCES users (username));
-            ''')
 
 app = flask.Flask(__name__)
 app.secret_key = 'TODO: maybe consider setting a proper value for this'
