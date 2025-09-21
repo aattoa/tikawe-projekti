@@ -15,6 +15,12 @@
     {% for message in messages %}
     <p><i>{{ message[0] }}</i>: <b>{{ message[1] }}</b></p>
     {% endfor %}
+    {% if session.user %}
+    <form action="/api/post/{{ channel }}" method="post">
+        <p>Create a new post: <input name="content" /></p>
+        <input type="submit" value="Post" />
+    </form>
+    {% endif %}
 </body>
 
 </html>

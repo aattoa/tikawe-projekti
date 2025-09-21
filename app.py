@@ -36,6 +36,7 @@ if not os.path.exists(DB):
             CREATE TABLE messages
             ( username TEXT NOT NULL
             , content TEXT NOT NULL
+            , channel TEXT NOT NULL
             , FOREIGN KEY (username) REFERENCES users (username));
             ''')
 
@@ -44,7 +45,8 @@ app.secret_key = 'TODO: maybe consider setting a proper value for this'
 
 @app.route('/channel/<name>')
 def channel(name):
-    messages = query('SELECT * FROM messages')
+    sql = 'SELECT username, content FROM messages WHERE channel = ?'
+    messages = query(sql, [name])
     return flask.render_template('index.html', channel=name, count=len(messages), messages=messages)
 
 @app.route('/')
@@ -91,3 +93,13 @@ def api_login():
 def api_logout():
     del flask.session['user']
     return flask.redirect('/')
+
+@app.route('/api/post/<channel>', methods=['POST'])
+def api_post(channel):
+    if not flask.session['user']:
+        return 'Not logged in!'
+
+    sql = 'INSERT INTO messages (username, content, channel) VALUES (?, ?, ?)'
+    execute(sql, [flask.session['user'], flask.request.form['content'], channel])
+
+    return flask.redirect(f'/channel/{channel}')
