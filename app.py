@@ -103,3 +103,10 @@ def api_post(channel):
     execute(sql, [flask.session['user'], flask.request.form['content'], channel])
 
     return flask.redirect(f'/channel/{channel}')
+
+@app.route('/api/channel_search', methods=['POST'])
+def api_channel_search():
+    sql = 'SELECT DISTINCT channel FROM messages WHERE instr(channel, ?) > 0'
+    search_term = flask.request.form['search_term']
+    channels = query(sql, [search_term])
+    return flask.render_template('channel_search.html', channels=channels, search_term=search_term)

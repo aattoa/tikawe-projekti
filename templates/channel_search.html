@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Channel search</title>
+</head>
+
+<body>
+    {% if search_term == '' %}
+    All channels:
+    {% else %}
+    Channels matching <i>'{{ search_term }}'</i>:
+    {% endif %}
+    <ul>
+    {% for channel in channels %}
+    <li><a href="/channel/{{ channel[0] }}"><b>{{ channel[0] }}</b></a></li>
+    {% endfor %}
+    </ul>
+</body>
+
+</html>
