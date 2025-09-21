@@ -2,10 +2,8 @@ import sqlite3
 import flask
 import werkzeug.security
 
-DB = 'database.db'
-
 def connect():
-    db = sqlite3.connect(DB)
+    db = sqlite3.connect('database.db')
     db.execute('PRAGMA foreign_keys = ON')
     return db
 
@@ -24,6 +22,14 @@ def query(sql, params=None):
     finally:
         db.close()
     return results
+
+def redirect_prev_channel():
+    channel = flask.session['channel'] or 'default'
+    return flask.redirect(f'/channel/{channel}')
+
+def can_modify_message(rowid):
+    sql = 'SELECT username FROM messages WHERE rowid = ?'
+    return query(sql, [rowid]) == [(flask.session['user'],)]
 
 app = flask.Flask(__name__)
 app.secret_key = 'TODO: maybe consider setting a proper value for this'
@@ -56,7 +62,7 @@ def api_register():
     except sqlite3.IntegrityError:
         return 'Username already taken'
 
-    return flask.redirect('/')
+    return redirect_prev_channel()
 
 @app.route('/login')
 def login():
@@ -72,39 +78,29 @@ def api_login():
 
     if werkzeug.security.check_password_hash(password_hash, password):
         flask.session['user'] = username
-        return flask.redirect('/')
+        return redirect_prev_channel()
     return 'Invalid username or password!'
 
 @app.route('/logout')
 def api_logout():
     del flask.session['user']
-    return flask.redirect('/')
+    return redirect_prev_channel()
 
 @app.route('/api/post/<channel>', methods=['POST'])
 def api_post(channel):
     if not flask.session['user']:
         return 'Not logged in!'
-
     sql = 'INSERT INTO messages (username, content, channel) VALUES (?, ?, ?)'
     execute(sql, [flask.session['user'], flask.request.form['content'], channel])
-
     return flask.redirect(f'/channel/{channel}')
 
 @app.route('/api/delete/<rowid>')
 def api_delete(rowid):
-    if not flask.session['user']:
-        return 'Not logged in!'
-
-    sql = 'SELECT username FROM messages WHERE rowid = ?'
-
-    if query(sql, [rowid]) != [(flask.session['user'],)]:
-        return 'Invalid message id!'
-
+    if not can_modify_message(rowid):
+        return 'Permission denid!'
     sql = 'DELETE FROM messages WHERE rowid = ?'
     execute(sql, [rowid])
-
-    channel = flask.session['channel'] or 'default'
-    return flask.redirect(f'/channel/{channel}')
+    return redirect_prev_channel()
 
 @app.route('/edit/<rowid>')
 def edit(rowid):
@@ -114,18 +110,11 @@ def edit(rowid):
 
 @app.route('/api/edit/<rowid>', methods=['POST'])
 def api_edit(rowid):
-    if not flask.session['user']:
-        return 'Not logged in!'
-
-    sql = 'SELECT username FROM messages WHERE rowid = ?'
-    if query(sql, [rowid]) != [(flask.session['user'],)]:
-        return 'Invalid message id!'
-
+    if not can_modify_message(rowid):
+        return 'Permission denid!'
     sql = 'UPDATE messages SET content = ? WHERE rowid = ?'
     execute(sql, [flask.request.form['content'], rowid])
-
-    channel = flask.session['channel'] or 'default'
-    return flask.redirect(f'/channel/{channel}')
+    return redirect_prev_channel()
 
 @app.route('/api/channel_search', methods=['POST'])
 def api_channel_search():
