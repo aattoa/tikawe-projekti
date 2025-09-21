@@ -17,7 +17,12 @@
     </form>
     <h1>Channel <i>{{ channel }}</i>, {{ count }} messages.</h1>
     {% for message in messages %}
-    <p><i>{{ message[0] }}</i>: <b>{{ message[1] }}</b></p>
+    <p>
+        <i>{{ message[1] }}</i>: <b>{{ message[2] }}</b>
+        {% if session.user == message[1] %}
+        <a href="/api/delete/{{ message[0] }}"><small>delete</small></a>
+        {% endif %}
+    </p>
     {% endfor %}
     {% if session.user %}
     <form action="/api/post/{{ channel }}" method="post">

@@ -45,7 +45,8 @@ app.secret_key = 'TODO: maybe consider setting a proper value for this'
 
 @app.route('/channel/<name>')
 def channel(name):
-    sql = 'SELECT username, content FROM messages WHERE channel = ?'
+    flask.session['channel'] = name
+    sql = 'SELECT rowid, username, content FROM messages WHERE channel = ?'
     messages = query(sql, [name])
     return flask.render_template('index.html', channel=name, count=len(messages), messages=messages)
 
@@ -102,6 +103,22 @@ def api_post(channel):
     sql = 'INSERT INTO messages (username, content, channel) VALUES (?, ?, ?)'
     execute(sql, [flask.session['user'], flask.request.form['content'], channel])
 
+    return flask.redirect(f'/channel/{channel}')
+
+@app.route('/api/delete/<rowid>')
+def api_delete(rowid):
+    if not flask.session['user']:
+        return 'Not logged in!'
+
+    sql = 'SELECT username FROM messages WHERE rowid = ?'
+
+    if query(sql, [rowid]) != [(flask.session['user'],)]:
+        return 'Invalid message id!'
+
+    sql = 'DELETE FROM messages WHERE rowid = ?'
+    execute(sql, [rowid])
+
+    channel = flask.session['channel'] or 'default'
     return flask.redirect(f'/channel/{channel}')
 
 @app.route('/api/channel_search', methods=['POST'])
