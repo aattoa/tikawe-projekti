@@ -22,6 +22,7 @@
     <p>
         <i>{{ message[1] }}</i>: <b>{{ message[2] }}</b>
         {% if session.user == message[1] %}
+        <a href="/edit/{{ message[0] }}"><small>edit</small></a>
         <a href="/api/delete/{{ message[0] }}"><small>delete</small></a>
         {% endif %}
     </p>

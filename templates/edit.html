@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Edit message</title>
+</head>
+
+<body>
+    <form action="/api/edit/{{ rowid }}" method="post">
+        <p>Message: <input name="content" value="{{ content }}" /></p>
+        <input type="submit" value="Confirm" />
+    </form>
+</body>
+
+</html>

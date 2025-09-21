@@ -106,6 +106,27 @@ def api_delete(rowid):
     channel = flask.session['channel'] or 'default'
     return flask.redirect(f'/channel/{channel}')
 
+@app.route('/edit/<rowid>')
+def edit(rowid):
+    sql = 'SELECT content FROM messages WHERE rowid = ?'
+    content = query(sql, [rowid])[0][0]
+    return flask.render_template('edit.html', content=content, rowid=rowid)
+
+@app.route('/api/edit/<rowid>', methods=['POST'])
+def api_edit(rowid):
+    if not flask.session['user']:
+        return 'Not logged in!'
+
+    sql = 'SELECT username FROM messages WHERE rowid = ?'
+    if query(sql, [rowid]) != [(flask.session['user'],)]:
+        return 'Invalid message id!'
+
+    sql = 'UPDATE messages SET content = ? WHERE rowid = ?'
+    execute(sql, [flask.request.form['content'], rowid])
+
+    channel = flask.session['channel'] or 'default'
+    return flask.redirect(f'/channel/{channel}')
+
 @app.route('/api/channel_search', methods=['POST'])
 def api_channel_search():
     sql = 'SELECT DISTINCT channel FROM messages WHERE instr(channel, ?) > 0'
