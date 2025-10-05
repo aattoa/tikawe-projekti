@@ -20,7 +20,10 @@
     <h1>Channel <i>{{ channel }}</i>, {{ count }} messages.</h1>
     {% for message in messages %}
     <div class="msg">
-        <i class="msg-part">{{ message[1] }}</i>: <b>{{ message[2] }}</b>
+        <i class="msg-part">
+            <a href="/user/{{ message[1] }}">{{ message[1] }}</a>
+        </i>:
+        <b>{{ message[2] }}</b>
         {% if session.user == message[1] %}
         <form class="msg-part" action="/edit/{{ message[0] }}">
             <input type="hidden" name="csrf" value="{{ session.csrf }}" />

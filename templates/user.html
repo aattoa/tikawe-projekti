@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>User {{ user }}</title>
+</head>
+
+<body>
+    {{ user }}'s page has been visited {{ visits }} times.
+    <h1>Messages posted by {{ user }}</h1>
+    <ol>
+        {% for message in messages %}
+        <li><b>{{ message[0] }}</b> <small>(posted on <a href="/channel/{{ message[1] }}">{{ message[1] }}</a>)</small></li>
+        {% endfor %}
+    </ol>
+</body>
+
+</html>

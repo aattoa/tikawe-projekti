@@ -67,7 +67,7 @@ def api_register():
     password_hash = werkzeug.security.generate_password_hash(password)
 
     try:
-        sql = 'INSERT INTO users (username, password_hash) VALUES (?, ?)'
+        sql = 'INSERT INTO users (username, password_hash, page_visits) VALUES (?, ?, 0)'
         execute(sql, [username, password_hash])
     except sqlite3.IntegrityError:
         return 'Username already taken'
@@ -134,3 +134,13 @@ def api_channel_search():
     search_term = flask.request.form.get('search_term', '')
     channels = query(sql, [search_term])
     return flask.render_template('channel_search.html', new=not channels, channels=channels, search_term=search_term)
+
+@app.route('/user/<user>')
+def user(user):
+    sql = 'SELECT content, channel FROM messages WHERE username = ?'
+    messages = query(sql, [user])
+    sql = 'UPDATE users SET page_visits = page_visits + 1 WHERE username = ?'
+    execute(sql, [user])
+    sql = 'SELECT page_visits FROM users WHERE username = ?'
+    visits = query(sql, [user])[0][0]
+    return flask.render_template('user.html', user=user, visits=visits, messages=messages)

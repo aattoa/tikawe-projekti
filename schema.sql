@@ -1,6 +1,7 @@
 CREATE TABLE users
 ( username      TEXT PRIMARY KEY NOT NULL
-, password_hash TEXT             NOT NULL);
+, password_hash TEXT             NOT NULL
+, page_visits   INT              NOT NULL);
 
 CREATE TABLE messages
 ( username TEXT NOT NULL
