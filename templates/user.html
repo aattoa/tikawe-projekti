@@ -6,7 +6,11 @@
 </head>
 
 <body>
-    {{ user }}'s page has been visited {{ visits }} times.
+    <h1>Statistics</h1>
+    <ul>
+        <li>{{ user }}'s page has been visited {{ visits }} times.</li>
+        <li>{{ user }}'s messages have been liked {{ likes }} times.</li>
+    </ul>
     <h1>Messages posted by {{ user }}</h1>
     <ol>
         {% for message in messages %}

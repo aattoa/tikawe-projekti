@@ -47,7 +47,7 @@ app.secret_key = 'TODO: maybe consider setting a proper value for this'
 @app.route('/channel/<name>')
 def channel(name):
     flask.session['channel'] = name
-    sql = 'SELECT rowid, username, content FROM messages WHERE channel = ?'
+    sql = 'SELECT rowid, username, content, likes FROM messages WHERE channel = ?'
     messages = query(sql, [name])
     return flask.render_template('index.html', channel=name, count=len(messages), messages=messages)
 
@@ -102,7 +102,7 @@ def api_logout():
 def api_post(channel):
     require_authentic_request()
     require_login()
-    sql = 'INSERT INTO messages (username, content, channel) VALUES (?, ?, ?)'
+    sql = 'INSERT INTO messages (username, content, channel, likes) VALUES (?, ?, ?, 0)'
     execute(sql, [flask.session.get('user'), flask.request.form.get('content'), channel])
     return flask.redirect(f'/channel/{channel}')
 
@@ -135,6 +135,14 @@ def api_channel_search():
     channels = query(sql, [search_term])
     return flask.render_template('channel_search.html', new=not channels, channels=channels, search_term=search_term)
 
+@app.route('/api/like/<rowid>', methods=['POST'])
+def api_like(rowid):
+    require_login()
+    require_authentic_request()
+    sql = 'UPDATE messages SET likes = likes + 1 WHERE rowid = ?'
+    execute(sql, [rowid])
+    return redirect_prev_channel()
+
 @app.route('/user/<user>')
 def user(user):
     sql = 'SELECT content, channel FROM messages WHERE username = ?'
@@ -143,4 +151,6 @@ def user(user):
     execute(sql, [user])
     sql = 'SELECT page_visits FROM users WHERE username = ?'
     visits = query(sql, [user])[0][0]
-    return flask.render_template('user.html', user=user, visits=visits, messages=messages)
+    sql = 'SELECT SUM(likes) FROM messages WHERE username = ?'
+    likes = query(sql, [user])[0][0]
+    return flask.render_template('user.html', user=user, likes=likes, visits=visits, messages=messages)

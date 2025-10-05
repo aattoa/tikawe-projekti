@@ -11,6 +11,8 @@ Käyttäjä pystyy:
 - Julkaisemaan viestejä, kunhan on kirjautut sisään.
 - Poistamaan omia viestejään.
 - Muokkaamaan omia viestejään.
+- Tykkäämään muiden käyttäjien viesteistä.
+- Tarkastelemaan halutun käyttäjän viestejä ja tilastoja.
 
 ## Testaaminen
 

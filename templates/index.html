@@ -24,6 +24,9 @@
             <a href="/user/{{ message[1] }}">{{ message[1] }}</a>
         </i>:
         <b>{{ message[2] }}</b>
+        {% if message[3] != 0 %}
+        <small class="msg-part">({{ message[3] }} likes)</small>
+        {% endif %}
         {% if session.user == message[1] %}
         <form class="msg-part" action="/edit/{{ message[0] }}">
             <input type="hidden" name="csrf" value="{{ session.csrf }}" />
@@ -32,6 +35,11 @@
         <form class="msg-part" action="/api/delete/{{ message[0] }}" method="post">
             <input type="hidden" name="csrf" value="{{ session.csrf }}" />
             <input type="submit" value="Delete" />
+        </form>
+        {% else %}
+        <form class="msg-part" action="/api/like/{{ message[0] }}" method="post">
+            <input type="hidden" name="csrf" value="{{ session.csrf }}" />
+            <input type="submit" value="Like" />
         </form>
         {% endif %}
     </div>

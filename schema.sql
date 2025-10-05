@@ -7,4 +7,5 @@ CREATE TABLE messages
 ( username TEXT NOT NULL
 , content  TEXT NOT NULL
 , channel  TEXT NOT NULL
+, likes    INT  NOT NULL
 , FOREIGN KEY (username) REFERENCES users (username));
