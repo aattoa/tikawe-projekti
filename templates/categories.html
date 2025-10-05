@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Message categories</title>
+</head>
+
+<body>
+    <h1>Message categories</h1>
+    <p><b>{{ content }}</b></p>
+    <ul>
+        {% for category in categories %}
+        <li>{{ category[0] }}</li>
+        {% endfor %}
+    </ul>
+    <form action="/api/add_category/{{ rowid }}" method="post">
+        <p>Add a category: <input name="new_category" /></p>
+        <input type="hidden" name="csrf" value="{{ session.csrf }}" />
+        <input type="submit" value="Add" />
+    </form>
+</body>
+
+</html>

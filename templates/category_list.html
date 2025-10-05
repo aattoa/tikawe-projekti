@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Category list</title>
+</head>
+
+<body>
+    <h1>Available categories</h1>
+    <ul>
+        {% for category in categories %}
+        <li><a href="/category_search/{{ category[0] }}">{{ category[0] }}</a></li>
+        {% endfor %}
+    </ul>
+</body>
+
+</html>

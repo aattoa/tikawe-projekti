@@ -128,6 +128,35 @@ def api_edit(rowid):
     execute(sql, [flask.request.form.get('content'), rowid])
     return redirect_prev_channel()
 
+@app.route('/categories/<rowid>')
+def categories(rowid):
+    sql = 'SELECT category FROM categories WHERE message_rowid = ?'
+    categories = query(sql, [rowid])
+    sql = 'SELECT content FROM messages WHERE rowid = ?'
+    content = query(sql, [rowid])[0][0]
+    return flask.render_template('categories.html', categories=categories, content=content, rowid=rowid)
+
+@app.route('/category_list')
+def category_list():
+    sql = 'SELECT DISTINCT category FROM categories'
+    categories = query(sql)
+    return flask.render_template('category_list.html', categories=categories)
+
+@app.route('/category_search/<category>')
+def category_search(category):
+    sql = 'SELECT message_rowid FROM categories WHERE category = ?'
+    rowids = query(sql, [category])
+    sql = 'SELECT content, channel FROM messages WHERE rowid = ?'
+    messages = [query(sql, [rowid[0]])[0] for rowid in rowids]
+    return flask.render_template('category_search.html', messages=messages)
+
+@app.route('/api/add_category/<rowid>', methods=['POST'])
+def api_add_category(rowid):
+    require_authentic_request()
+    sql = 'INSERT INTO categories (message_rowid, category) VALUES (?, ?)'
+    execute(sql, [rowid, flask.request.form.get('new_category')])
+    return redirect_prev_channel()
+
 @app.route('/api/channel_search', methods=['POST'])
 def api_channel_search():
     sql = 'SELECT DISTINCT channel FROM messages WHERE instr(channel, ?) > 0'

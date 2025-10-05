@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Category search</title>
+</head>
+
+<body>
+    <ul>
+        {% for message in messages %}
+        <li>
+            <b>{{ message[0] }}</b> <small>(posted on {{ message[1] }})</small>
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+
+</html>
