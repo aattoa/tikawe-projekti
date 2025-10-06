@@ -7,10 +7,10 @@
 
 <body>
     <h1>Message categories</h1>
-    <p><b>{{ content }}</b></p>
+    <p><b>{{ message.content }}</b></p>
     <ul>
         {% for category in categories %}
-        <li>{{ category[0] }}</li>
+        <li><a href="/category_search/{{ category }}">{{ category }}</a></li>
         {% endfor %}
     </ul>
     <form action="/api/add_category/{{ rowid }}" method="post">

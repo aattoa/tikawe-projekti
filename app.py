@@ -1,28 +1,6 @@
 import secrets
-import sqlite3
 import flask
-import werkzeug.security
-
-def connect():
-    db = sqlite3.connect('database.db')
-    db.execute('PRAGMA foreign_keys = ON')
-    return db
-
-def execute(sql, params=None):
-    db = connect()
-    try:
-        db.execute(sql, [] if params is None else params)
-        db.commit()
-    finally:
-        db.close()
-
-def query(sql, params=None):
-    db = connect()
-    try:
-        results = db.execute(sql, [] if params is None else params).fetchall()
-    finally:
-        db.close()
-    return results
+import database
 
 def redirect_prev_channel():
     channel = flask.session.get('channel', 'default')
@@ -37,19 +15,25 @@ def require_login():
         flask.abort(403, description='Login required!')
 
 def require_modifiable_message(rowid):
-    sql = 'SELECT username FROM messages WHERE rowid = ?'
-    if query(sql, [rowid]) != [(flask.session.get('user'),)]:
+    if flask.session.get('user') != database.message(rowid).username:
         flask.abort(403, description='You do not have permission to modify this message!')
+
+def session_set_login(username: str):
+    flask.session['user'] = username
+    flask.session['csrf'] = secrets.token_hex(32) # Random per-login data used to prevent cross-site request forgery
+
+def session_clear_login():
+    del flask.session['user']
+    del flask.session['csrf']
 
 app = flask.Flask(__name__)
 app.secret_key = 'TODO: maybe consider setting a proper value for this'
 
-@app.route('/channel/<name>')
-def channel(name):
-    flask.session['channel'] = name
-    sql = 'SELECT rowid, username, content, likes FROM messages WHERE channel = ?'
-    messages = query(sql, [name])
-    return flask.render_template('index.html', channel=name, count=len(messages), messages=messages)
+@app.route('/channel/<channel>')
+def channel(channel):
+    flask.session['channel'] = channel
+    messages = database.channel_messages(channel)
+    return flask.render_template('index.html', channel=channel, count=len(messages), messages=messages)
 
 @app.route('/')
 def index():
@@ -59,127 +43,97 @@ def index():
 def register():
     return flask.render_template('register.html')
 
+@app.route('/login')
+def login():
+    return flask.render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session_clear_login()
+    return redirect_prev_channel()
+
+@app.route('/edit/<rowid>')
+def edit(rowid):
+    content = database.message(rowid).content
+    return flask.render_template('edit.html', content=content, rowid=rowid)
+
+@app.route('/categories/<rowid>')
+def categories(rowid):
+    categories = database.message_categories(rowid)
+    message = database.message(rowid)
+    return flask.render_template('categories.html', categories=categories, message=message, rowid=rowid)
+
+@app.route('/category_list')
+def category_list():
+    return flask.render_template('category_list.html', categories=database.categories())
+
+@app.route('/category_search/<category>')
+def category_search(category):
+    messages = database.category_messages(category)
+    return flask.render_template('category_search.html', category=category, messages=messages)
+
+@app.route('/user/<user>')
+def user(user):
+    messages = database.user_messages(user)
+    visits = database.increment_user_visits(user)
+    likes = database.user_total_likes(user)
+    return flask.render_template('user.html', user=user, likes=likes, visits=visits, messages=messages)
+
 @app.route('/api/register', methods=['POST'])
 def api_register():
     username = flask.request.form['username']
     password = flask.request.form['password']
-
-    password_hash = werkzeug.security.generate_password_hash(password)
-
-    try:
-        sql = 'INSERT INTO users (username, password_hash, page_visits) VALUES (?, ?, 0)'
-        execute(sql, [username, password_hash])
-    except sqlite3.IntegrityError:
-        return 'Username already taken'
-
-    return redirect_prev_channel()
-
-@app.route('/login')
-def login():
-    return flask.render_template('login.html')
+    if database.register_user(username, password):
+        session_set_login(username)
+        return redirect_prev_channel()
+    return 'Username already taken'
 
 @app.route('/api/login', methods=['POST'])
 def api_login():
     username = flask.request.form['username']
     password = flask.request.form['password']
-
-    sql = 'SELECT password_hash FROM users WHERE username = ?'
-    password_hash = query(sql, [username])[0][0]
-
-    if werkzeug.security.check_password_hash(password_hash, password):
-        flask.session['user'] = username
-        flask.session['csrf'] = secrets.token_hex(32) # Random per-user data to prevent cross-site request forgery
+    if database.is_valid_login(username, password):
+        session_set_login(username)
         return redirect_prev_channel()
     return 'Invalid username or password!'
-
-@app.route('/logout')
-def api_logout():
-    del flask.session['user']
-    del flask.session['csrf']
-    return redirect_prev_channel()
 
 @app.route('/api/post/<channel>', methods=['POST'])
 def api_post(channel):
     require_authentic_request()
     require_login()
-    sql = 'INSERT INTO messages (username, content, channel, likes) VALUES (?, ?, ?, 0)'
-    execute(sql, [flask.session.get('user'), flask.request.form.get('content'), channel])
+    database.user_post_message(flask.session['user'], flask.request.form['content'], channel)
     return flask.redirect(f'/channel/{channel}')
 
 @app.route('/api/delete/<rowid>', methods=['POST'])
 def api_delete(rowid):
     require_authentic_request()
     require_modifiable_message(rowid)
-    sql = 'DELETE FROM messages WHERE rowid = ?'
-    execute(sql, [rowid])
+    database.delete_message(rowid)
     return redirect_prev_channel()
-
-@app.route('/edit/<rowid>')
-def edit(rowid):
-    sql = 'SELECT content FROM messages WHERE rowid = ?'
-    content = query(sql, [rowid])[0][0]
-    return flask.render_template('edit.html', content=content, rowid=rowid)
 
 @app.route('/api/edit/<rowid>', methods=['POST'])
 def api_edit(rowid):
     require_authentic_request()
     require_modifiable_message(rowid)
-    sql = 'UPDATE messages SET content = ? WHERE rowid = ?'
-    execute(sql, [flask.request.form.get('content'), rowid])
+    database.edit_message(rowid, flask.request.form['content'])
     return redirect_prev_channel()
-
-@app.route('/categories/<rowid>')
-def categories(rowid):
-    sql = 'SELECT category FROM categories WHERE message_rowid = ?'
-    categories = query(sql, [rowid])
-    sql = 'SELECT content FROM messages WHERE rowid = ?'
-    content = query(sql, [rowid])[0][0]
-    return flask.render_template('categories.html', categories=categories, content=content, rowid=rowid)
-
-@app.route('/category_list')
-def category_list():
-    sql = 'SELECT DISTINCT category FROM categories'
-    categories = query(sql)
-    return flask.render_template('category_list.html', categories=categories)
-
-@app.route('/category_search/<category>')
-def category_search(category):
-    sql = 'SELECT message_rowid FROM categories WHERE category = ?'
-    rowids = query(sql, [category])
-    sql = 'SELECT content, channel FROM messages WHERE rowid = ?'
-    messages = [query(sql, [rowid[0]])[0] for rowid in rowids]
-    return flask.render_template('category_search.html', messages=messages)
 
 @app.route('/api/add_category/<rowid>', methods=['POST'])
 def api_add_category(rowid):
     require_authentic_request()
-    sql = 'INSERT INTO categories (message_rowid, category) VALUES (?, ?)'
-    execute(sql, [rowid, flask.request.form.get('new_category')])
+    require_modifiable_message(rowid)
+    database.add_message_category(rowid, flask.request.form['new_category'])
     return redirect_prev_channel()
 
 @app.route('/api/channel_search', methods=['POST'])
 def api_channel_search():
-    sql = 'SELECT DISTINCT channel FROM messages WHERE instr(channel, ?) > 0'
-    search_term = flask.request.form.get('search_term', '')
-    channels = query(sql, [search_term])
-    return flask.render_template('channel_search.html', new=not channels, channels=channels, search_term=search_term)
+    term = flask.request.form.get('search_term', '')
+    channels = database.search_channels(term)
+    return flask.render_template('channel_search.html', new=not channels, channels=channels, search_term=term)
 
 @app.route('/api/like/<rowid>', methods=['POST'])
 def api_like(rowid):
     require_login()
     require_authentic_request()
-    sql = 'UPDATE messages SET likes = likes + 1 WHERE rowid = ?'
-    execute(sql, [rowid])
+    database.increment_message_likes(rowid)
     return redirect_prev_channel()
-
-@app.route('/user/<user>')
-def user(user):
-    sql = 'SELECT content, channel FROM messages WHERE username = ?'
-    messages = query(sql, [user])
-    sql = 'UPDATE users SET page_visits = page_visits + 1 WHERE username = ?'
-    execute(sql, [user])
-    sql = 'SELECT page_visits FROM users WHERE username = ?'
-    visits = query(sql, [user])[0][0]
-    sql = 'SELECT SUM(likes) FROM messages WHERE username = ?'
-    likes = query(sql, [user])[0][0]
-    return flask.render_template('user.html', user=user, likes=likes, visits=visits, messages=messages)

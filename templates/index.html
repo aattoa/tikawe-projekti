@@ -22,27 +22,27 @@
     {% for message in messages %}
     <div class="msg">
         <i class="msg-part">
-            <a href="/user/{{ message[1] }}">{{ message[1] }}</a>
+            <a href="/user/{{ message.username }}">{{ message.username }}</a>
         </i>:
-        <b>{{ message[2] }}</b>
-        {% if message[3] != 0 %}
-        <small class="msg-part">({{ message[3] }} likes)</small>
+        <b>{{ message.content }}</b>
+        {% if message.likes != 0 %}
+        <small class="msg-part">({{ message.likes }} likes)</small>
         {% endif %}
-        {% if session.user == message[1] %}
-        <form class="msg-part" action="/categories/{{ message[0] }}">
+        {% if session.user == message.username %}
+        <form class="msg-part" action="/categories/{{ message.rowid }}">
             <input type="hidden" name="csrf" value="{{ session.csrf }}" />
             <input type="submit" value="Categories" />
         </form>
-        <form class="msg-part" action="/edit/{{ message[0] }}">
+        <form class="msg-part" action="/edit/{{ message.rowid }}">
             <input type="hidden" name="csrf" value="{{ session.csrf }}" />
             <input type="submit" value="Edit" />
         </form>
-        <form class="msg-part" action="/api/delete/{{ message[0] }}" method="post">
+        <form class="msg-part" action="/api/delete/{{ message.rowid }}" method="post">
             <input type="hidden" name="csrf" value="{{ session.csrf }}" />
             <input type="submit" value="Delete" />
         </form>
-        {% else %}
-        <form class="msg-part" action="/api/like/{{ message[0] }}" method="post">
+        {% elif session.user %}
+        <form class="msg-part" action="/api/like/{{ message.rowid }}" method="post">
             <input type="hidden" name="csrf" value="{{ session.csrf }}" />
             <input type="submit" value="Like" />
         </form>
@@ -51,9 +51,8 @@
     {% endfor %}
     {% if session.user %}
     <form action="/api/post/{{ channel }}" method="post">
-        <p>Create a new post: <input name="content" /></p>
         <input type="hidden" name="csrf" value="{{ session.csrf }}" />
-        <input type="submit" value="Post" />
+        <p>Create a new post: <input name="content" autofocus /> <input type="submit" value="Post" /></p>
     </form>
     {% endif %}
 </body>

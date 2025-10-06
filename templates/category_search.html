@@ -6,11 +6,10 @@
 </head>
 
 <body>
+    <h1>Messages categorized as {{ category }}</h1>
     <ul>
         {% for message in messages %}
-        <li>
-            <b>{{ message[0] }}</b> <small>(posted on {{ message[1] }})</small>
-        </li>
+        <li><b>{{ message.content }}</b> <small>(posted on <a href="/channel/{{ message.channel }}">{{ message.channel }}</a> by <a href="/user/{{ message.username }}">{{ message.username }}</a>)</small></li>
         {% endfor %}
     </ul>
 </body>

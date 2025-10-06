@@ -14,7 +14,7 @@
     <h1>Messages posted by {{ user }}</h1>
     <ol>
         {% for message in messages %}
-        <li><b>{{ message[0] }}</b> <small>(posted on <a href="/channel/{{ message[1] }}">{{ message[1] }}</a>)</small></li>
+        <li><b>{{ message.content }}</b> <small>({{ message.likes }} likes, posted on <a href="/channel/{{ message.channel }}">{{ message.channel }}</a>)</small></li>
         {% endfor %}
     </ol>
 </body>
