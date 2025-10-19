@@ -3,9 +3,18 @@
 {% block title %} Register {% endblock %}
 
 {% block body %}
+    <h1>Create an account</h1>
     <form action="/api/register" method="post">
         <p>Username: <input name="username" /></p>
         <p>Password: <input name="password" type="password" /></p>
+        <details>
+            <summary><small>No second password field?</small></summary>
+            <ol>
+                <li>If the account <i>matters</i>, you are not going to type the password by hand in the first place.</li>
+                <li>If the account <i>does not matter</i> <small><small>(like in this case)</small></small>, forcing you to type the password twice would only waste your time.</li>
+            </ol>
+        </details>
+        <p></p>
         <input type="submit" value="Register" />
     </form>
 {% endblock %}
