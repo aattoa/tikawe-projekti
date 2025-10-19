@@ -25,7 +25,7 @@ def session_clear_login():
     del flask.session['csrf']
 
 app = flask.Flask(__name__)
-app.secret_key = 'TODO: maybe consider setting a proper value for this'
+app.secret_key = secrets.token_hex(32)
 
 @app.route('/channel/<channel>')
 def channel(channel):
