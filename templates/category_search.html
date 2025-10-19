@@ -1,17 +1,12 @@
-<!DOCTYPE html>
-<html>
+{% extends 'base.html' %}
 
-<head>
-    <title>Category search</title>
-</head>
+{% block title %}Category search{% endblock %}
 
-<body>
+{% block body %}
     <h1>Messages categorized as {{ category }}</h1>
     <ul>
         {% for message in messages %}
         <li><b>{{ message.content }}</b> <small>(posted on <a href="/channel/{{ message.channel }}">{{ message.channel }}</a> by <a href="/user/{{ message.username }}">{{ message.username }}</a>)</small></li>
         {% endfor %}
     </ul>
-</body>
-
-</html>
+{% endblock %}

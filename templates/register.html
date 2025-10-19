@@ -1,16 +1,11 @@
-<!DOCTYPE html>
-<html>
+{% extends 'base.html' %}
 
-<head>
-    <title>Register</title>
-</head>
+{% block title %} Register {% endblock %}
 
-<body>
+{% block body %}
     <form action="/api/register" method="post">
         <p>Username: <input name="username" /></p>
         <p>Password: <input name="password" type="password" /></p>
         <input type="submit" value="Register" />
     </form>
-</body>
-
-</html>
+{% endblock %}

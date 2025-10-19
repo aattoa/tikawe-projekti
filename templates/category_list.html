@@ -1,17 +1,12 @@
-<!DOCTYPE html>
-<html>
+{% extends 'base.html' %}
 
-<head>
-    <title>Category list</title>
-</head>
+{% block title %}Category list{% endblock %}
 
-<body>
+{% block body %}
     <h1>Available categories</h1>
     <ul>
         {% for category in categories %}
         <li><a href="/category_search/{{ category }}">{{ category }}</a></li>
         {% endfor %}
     </ul>
-</body>
-
-</html>
+{% endblock %}

@@ -1,22 +1,18 @@
-<!DOCTYPE html>
-<html>
+{% extends 'base.html' %}
 
-<head>
-    <title>User {{ user }}</title>
-</head>
+{% block title %} {{ user }}'s profile {% endblock %}
 
-<body>
-    <h1>Statistics</h1>
+{% block body %}
+    <h1>{{ user }}'s profile</h1>
+    <h2>Statistics</h2>
     <ul>
         <li>{{ user }}'s page has been visited {{ visits }} times.</li>
         <li>{{ user }}'s messages have been liked {{ likes }} times.</li>
     </ul>
-    <h1>Messages posted by {{ user }}</h1>
+    <h2>Messages posted by {{ user }}</h2>
     <ol>
         {% for message in messages %}
         <li><b>{{ message.content }}</b> <small>({{ message.likes }} likes, posted on <a href="/channel/{{ message.channel }}">{{ message.channel }}</a>)</small></li>
         {% endfor %}
     </ol>
-</body>
-
-</html>
+{% endblock %}

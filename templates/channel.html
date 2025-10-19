@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %} {{ channel }} {% endblock %}
+
+{% block body %}
+<form action="/api/channel_search" method="post">
+    <p>
+    Search for a channel or create a new one: <input name="search_term" />
+    <input type="submit" value="Search" />
+    </p>
+</form>
+<a href="/category_list">Browse message categories</a>
+<h1>Channel <i>{{ channel }}</i>, {{ count }} messages.</h1>
+{% for message in messages %}
+<div class="msg">
+    <i class="msg-part">
+        <a href="/user/{{ message.username }}">{{ message.username }}</a>
+    </i>:
+    <b>{{ message.content }}</b>
+    {% if message.likes != 0 %}
+    <small class="msg-part">({{ message.likes }} likes)</small>
+    {% endif %}
+    {% if session.user == message.username %}
+    <form class="msg-part" action="/categories/{{ message.rowid }}">
+        <input type="hidden" name="csrf" value="{{ session.csrf }}" />
+        <input type="submit" value="Categories" />
+    </form>
+    <form class="msg-part" action="/edit/{{ message.rowid }}">
+        <input type="hidden" name="csrf" value="{{ session.csrf }}" />
+        <input type="submit" value="Edit" />
+    </form>
+    <form class="msg-part" action="/api/delete/{{ message.rowid }}" method="post">
+        <input type="hidden" name="csrf" value="{{ session.csrf }}" />
+        <input type="submit" value="Delete" />
+    </form>
+    {% elif session.user %}
+    <form class="msg-part" action="/api/like/{{ message.rowid }}" method="post">
+        <input type="hidden" name="csrf" value="{{ session.csrf }}" />
+        <input type="submit" value="Like" />
+    </form>
+    {% endif %}
+</div>
+{% endfor %}
+{% if session.user %}
+<form action="/api/post/{{ channel }}" method="post">
+    <input type="hidden" name="csrf" value="{{ session.csrf }}" />
+    <p>Create a new post: <input name="content" autofocus /> <input type="submit" value="Post" /></p>
+</form>
+{% endif %}
+{% endblock %}

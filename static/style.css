@@ -1,0 +1,9 @@
+.msg {
+    display: table;
+}
+.msg-part {
+    display: table-cell;
+}
+.err {
+    color: red;
+}

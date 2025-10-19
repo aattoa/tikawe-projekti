@@ -1,25 +1,20 @@
-<!DOCTYPE html>
-<html>
+{% extends 'base.html' %}
 
-<head>
-    <title>Channel search</title>
-</head>
+{% block title %}Channel search{% endblock %}
 
-<body>
-    {% if new %}
+{% block body %}
+    {% if channels %}
+        {% if search_term == '' %}
+        All channels:
+        {% else %}
+        Channels matching <i>'{{ search_term }}'</i>:
+        {% endif %}
+        <ul>
+            {% for channel in channels %}
+            <li><a href="/channel/{{ channel }}"><b>{{ channel }}</b></a></li>
+            {% endfor %}
+        </ul>
+    {% else %}
     No channels matched <i>'{{ search_term }}'</i>. <a href="/channel/{{ search_term }}">Create a new channel?</a>
-    {% else %}
-    {% if search_term == '' %}
-    All channels:
-    {% else %}
-    Channels matching <i>'{{ search_term }}'</i>:
     {% endif %}
-    <ul>
-    {% for channel in channels %}
-    <li><a href="/channel/{{ channel }}"><b>{{ channel }}</b></a></li>
-    {% endfor %}
-    </ul>
-    {% endif %}
-</body>
-
-</html>
+{% endblock %}

@@ -7,12 +7,10 @@ def redirect_prev_channel():
     return flask.redirect(f'/channel/{channel}')
 
 def require_authentic_request():
-    if flask.request.form.get('csrf') != flask.session.get('csrf'):
-        flask.abort(403, description='Cross-site request forgery detected!')
-
-def require_login():
     if not flask.session.get('user'):
         flask.abort(403, description='Login required!')
+    if flask.request.form.get('csrf') != flask.session.get('csrf'):
+        flask.abort(403, description='Cross-site request forgery detected!')
 
 def require_modifiable_message(rowid):
     if flask.session.get('user') != database.message(rowid).username:
@@ -33,7 +31,7 @@ app.secret_key = 'TODO: maybe consider setting a proper value for this'
 def channel(channel):
     flask.session['channel'] = channel
     messages = database.channel_messages(channel)
-    return flask.render_template('index.html', channel=channel, count=len(messages), messages=messages)
+    return flask.render_template('channel.html', channel=channel, count=len(messages), messages=messages)
 
 @app.route('/')
 def index():
@@ -86,7 +84,7 @@ def api_register():
     if database.register_user(username, password):
         session_set_login(username)
         return redirect_prev_channel()
-    return 'Username already taken'
+    return flask.render_template('error.html', message='Username already taken!')
 
 @app.route('/api/login', methods=['POST'])
 def api_login():
@@ -95,12 +93,11 @@ def api_login():
     if database.is_valid_login(username, password):
         session_set_login(username)
         return redirect_prev_channel()
-    return 'Invalid username or password!'
+    return flask.render_template('error.html', message='Invalid username or password!')
 
 @app.route('/api/post/<channel>', methods=['POST'])
 def api_post(channel):
     require_authentic_request()
-    require_login()
     database.user_post_message(flask.session['user'], flask.request.form['content'], channel)
     return flask.redirect(f'/channel/{channel}')
 
@@ -129,11 +126,10 @@ def api_add_category(rowid):
 def api_channel_search():
     term = flask.request.form.get('search_term', '')
     channels = database.search_channels(term)
-    return flask.render_template('channel_search.html', new=not channels, channels=channels, search_term=term)
+    return flask.render_template('channel_search.html', channels=channels, search_term=term)
 
 @app.route('/api/like/<rowid>', methods=['POST'])
 def api_like(rowid):
-    require_login()
     require_authentic_request()
     database.increment_message_likes(rowid)
     return redirect_prev_channel()

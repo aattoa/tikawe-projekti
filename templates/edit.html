@@ -1,16 +1,11 @@
-<!DOCTYPE html>
-<html>
+{% extends 'base.html' %}
 
-<head>
-    <title>Edit message</title>
-</head>
+{% block title %}Edit message{% endblock %}
 
-<body>
+{% block body %}
     <form action="/api/edit/{{ rowid }}" method="post">
         <p>Message: <input name="content" value="{{ content }}" /></p>
         <input type="hidden" name="csrf" value="{{ session.csrf }}" />
         <input type="submit" value="Confirm" />
     </form>
-</body>
-
-</html>
+{% endblock %}
