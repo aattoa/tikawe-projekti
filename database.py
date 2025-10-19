@@ -33,7 +33,7 @@ def __query(sql, args=None, one=False):
         db.close()
 
 def message(msg_id: int) -> Message:
-    sql = 'SELECT * FROM messages WHERE id = ?'
+    sql = 'SELECT id, username, content, channel, likes FROM messages WHERE id = ?'
     message = __query(sql, [msg_id], one=True)
     return message and Message(*message)
 
@@ -54,11 +54,11 @@ def add_message_category(msg_id: int, category: str) -> None:
     __execute(sql, [msg_id, category])
 
 def user_messages(username: str) -> list[Message]:
-    sql = 'SELECT * FROM messages WHERE username = ?'
+    sql = 'SELECT id, username, content, channel, likes FROM messages WHERE username = ?'
     return [Message(*fields) for fields in __query(sql, [username])]
 
 def channel_messages(channel: str) -> list[Message]:
-    sql = 'SELECT * FROM messages WHERE channel = ?'
+    sql = 'SELECT id, username, content, channel, likes FROM messages WHERE channel = ?'
     return [Message(*fields) for fields in __query(sql, [channel])]
 
 def category_messages(category: str) -> list[Message]:
