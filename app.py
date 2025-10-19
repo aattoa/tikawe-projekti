@@ -17,8 +17,9 @@ def require_modifiable_message(msg_id):
         flask.abort(403, description='You do not have permission to modify this message!')
 
 def session_set_login(username: str):
+    # Random per-login data used to prevent cross-site request forgery
+    flask.session['csrf'] = secrets.token_hex(32)
     flask.session['user'] = username
-    flask.session['csrf'] = secrets.token_hex(32) # Random per-login data used to prevent cross-site request forgery
 
 def session_clear_login():
     del flask.session['user']
@@ -31,7 +32,11 @@ app.secret_key = secrets.token_hex(32)
 def channel(channel):
     flask.session['channel'] = channel
     messages = database.channel_messages(channel)
-    return flask.render_template('channel.html', channel=channel, count=len(messages), messages=messages)
+    return flask.render_template(
+        'channel.html',
+        channel=channel,
+        count=len(messages),
+        messages=messages)
 
 @app.route('/')
 def index():
@@ -59,7 +64,11 @@ def edit(msg_id):
 def categories(msg_id):
     categories = database.message_categories(msg_id)
     message = database.message(msg_id)
-    return flask.render_template('categories.html', categories=categories, message=message, msg_id=msg_id)
+    return flask.render_template(
+        'categories.html',
+        categories=categories,
+        message=message,
+        msg_id=msg_id)
 
 @app.route('/category_list')
 def category_list():
@@ -75,7 +84,12 @@ def user(user):
     messages = database.user_messages(user)
     visits = database.increment_user_visits(user)
     likes = database.user_total_likes(user)
-    return flask.render_template('user.html', user=user, likes=likes, visits=visits, messages=messages)
+    return flask.render_template(
+        'user.html',
+        user=user,
+        likes=likes,
+        visits=visits,
+        messages=messages)
 
 @app.route('/api/register', methods=['POST'])
 def api_register():
