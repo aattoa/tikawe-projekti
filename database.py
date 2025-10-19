@@ -51,10 +51,6 @@ def edit_message(rowid: int, content: str) -> None:
     sql = 'UPDATE messages SET content = ? WHERE rowid = ?'
     __execute(sql, [content, rowid])
 
-def increment_message_likes(rowid: int) -> None:
-    sql = 'UPDATE messages SET likes = likes + 1 WHERE rowid = ?'
-    __execute(sql, [rowid])
-
 def add_message_category(rowid: int, category: str) -> None:
     sql = 'INSERT INTO categories (message_rowid, category) VALUES (?, ?)'
     __execute(sql, [rowid, category])
@@ -81,8 +77,8 @@ def increment_user_visits(username: str) -> int:
     return __query(sql, [username], one=True)
 
 def user_total_likes(username: str) -> int:
-    sql = 'SELECT SUM(likes) FROM messages WHERE username = ?'
-    return __query(sql, [username], one=True)
+    sql = 'SELECT TOTAL(likes) FROM messages WHERE username = ?'
+    return int(__query(sql, [username], one=True))
 
 def user_post_message(username: str, content: str, channel: str) -> None:
     sql = 'INSERT INTO messages (username, content, channel, likes) VALUES (?, ?, ?, 0)'
@@ -104,3 +100,19 @@ def register_user(username: str, password: str) -> bool:
         return True
     except sqlite3.IntegrityError:
         return False
+
+def has_user_liked_message(username: str, rowid: int) -> bool:
+    sql = 'SELECT COUNT(*) FROM likes WHERE message_rowid = ? and username = ?'
+    return __query(sql, [rowid, username], one=True) != 0
+
+def toggle_message_like(username: str, rowid: int) -> None:
+    if has_user_liked_message(username, rowid):
+        sql = 'DELETE FROM likes WHERE message_rowid = ? and username = ?'
+        __execute(sql, [rowid, username])
+        sql = 'UPDATE messages SET likes = likes - 1 WHERE rowid = ?'
+        __execute(sql, [rowid])
+    else:
+        sql = 'INSERT INTO likes (message_rowid, username) VALUES (?, ?)'
+        __execute(sql, [rowid, username])
+        sql = 'UPDATE messages SET likes = likes + 1 WHERE rowid = ?'
+        __execute(sql, [rowid])

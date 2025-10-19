@@ -131,5 +131,5 @@ def api_channel_search():
 @app.route('/api/like/<rowid>', methods=['POST'])
 def api_like(rowid):
     require_authentic_request()
-    database.increment_message_likes(rowid)
+    database.toggle_message_like(flask.session['user'], rowid)
     return redirect_prev_channel()

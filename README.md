@@ -27,5 +27,4 @@ Käynnistä paikallinen flask palvelin: `flask run`
 Avaa viestipalvelu selaimessa: [http://localhost:5000](http://localhost:5000)
 
 ## Mahdolliset tulevat parannukset
-- Varmista että yksi käyttäjä ei tykkää viestistä enemmän kuin kerran.
 - Salli tilin poisto
