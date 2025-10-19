@@ -3,7 +3,7 @@
 {% block title %}Edit message{% endblock %}
 
 {% block body %}
-    <form action="/api/edit/{{ rowid }}" method="post">
+    <form action="/api/edit/{{ msg_id }}" method="post">
         <p>Message: <input name="content" value="{{ content }}" /></p>
         <input type="hidden" name="csrf" value="{{ session.csrf }}" />
         <input type="submit" value="Confirm" />

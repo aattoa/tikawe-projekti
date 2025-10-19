@@ -21,20 +21,20 @@
     <small class="msg-part">({{ message.likes }} likes)</small>
     {% endif %}
     {% if session.user == message.username %}
-    <form class="msg-part" action="/categories/{{ message.rowid }}">
+    <form class="msg-part" action="/categories/{{ message.id }}">
         <input type="hidden" name="csrf" value="{{ session.csrf }}" />
         <input type="submit" value="Categories" />
     </form>
-    <form class="msg-part" action="/edit/{{ message.rowid }}">
+    <form class="msg-part" action="/edit/{{ message.id }}">
         <input type="hidden" name="csrf" value="{{ session.csrf }}" />
         <input type="submit" value="Edit" />
     </form>
-    <form class="msg-part" action="/api/delete/{{ message.rowid }}" method="post">
+    <form class="msg-part" action="/api/delete/{{ message.id }}" method="post">
         <input type="hidden" name="csrf" value="{{ session.csrf }}" />
         <input type="submit" value="Delete" />
     </form>
     {% elif session.user %}
-    <form class="msg-part" action="/api/like/{{ message.rowid }}" method="post">
+    <form class="msg-part" action="/api/like/{{ message.id }}" method="post">
         <input type="hidden" name="csrf" value="{{ session.csrf }}" />
         <input type="submit" value="Like" />
     </form>

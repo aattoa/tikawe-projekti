@@ -15,4 +15,12 @@
         <li><b>{{ message.content }}</b> <small>({{ message.likes }} likes, posted on <a href="/channel/{{ message.channel }}">{{ message.channel }}</a>)</small></li>
         {% endfor %}
     </ol>
+    {% if session.user == user %}
+    <h2>Delete account</h2>
+    <form action="/api/delete_account" method="post">
+        You can permanently delete your account along with all of your messages:
+        <input type="submit" value="Delete account" />
+        <input type="hidden" name="csrf" value="{{ session.csrf }}" />
+    </form>
+    {% endif %}
 {% endblock %}

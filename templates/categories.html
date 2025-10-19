@@ -10,7 +10,7 @@
         <li><a href="/category_search/{{ category }}">{{ category }}</a></li>
         {% endfor %}
     </ul>
-    <form action="/api/add_category/{{ rowid }}" method="post">
+    <form action="/api/add_category/{{ msg_id }}" method="post">
         <p>Add a category: <input name="new_category" /></p>
         <input type="hidden" name="csrf" value="{{ session.csrf }}" />
         <input type="submit" value="Add" />

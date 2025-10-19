@@ -12,8 +12,8 @@ def require_authentic_request():
     if flask.request.form.get('csrf') != flask.session.get('csrf'):
         flask.abort(403, description='Cross-site request forgery detected!')
 
-def require_modifiable_message(rowid):
-    if flask.session.get('user') != database.message(rowid).username:
+def require_modifiable_message(msg_id):
+    if flask.session.get('user') != database.message(msg_id).username:
         flask.abort(403, description='You do not have permission to modify this message!')
 
 def session_set_login(username: str):
@@ -50,16 +50,16 @@ def logout():
     session_clear_login()
     return redirect_prev_channel()
 
-@app.route('/edit/<rowid>')
-def edit(rowid):
-    content = database.message(rowid).content
-    return flask.render_template('edit.html', content=content, rowid=rowid)
+@app.route('/edit/<int:msg_id>')
+def edit(msg_id):
+    content = database.message(msg_id).content
+    return flask.render_template('edit.html', content=content, msg_id=msg_id)
 
-@app.route('/categories/<rowid>')
-def categories(rowid):
-    categories = database.message_categories(rowid)
-    message = database.message(rowid)
-    return flask.render_template('categories.html', categories=categories, message=message, rowid=rowid)
+@app.route('/categories/<int:msg_id>')
+def categories(msg_id):
+    categories = database.message_categories(msg_id)
+    message = database.message(msg_id)
+    return flask.render_template('categories.html', categories=categories, message=message, msg_id=msg_id)
 
 @app.route('/category_list')
 def category_list():
@@ -101,25 +101,25 @@ def api_post(channel):
     database.user_post_message(flask.session['user'], flask.request.form['content'], channel)
     return flask.redirect(f'/channel/{channel}')
 
-@app.route('/api/delete/<rowid>', methods=['POST'])
-def api_delete(rowid):
+@app.route('/api/delete/<int:msg_id>', methods=['POST'])
+def api_delete(msg_id):
     require_authentic_request()
-    require_modifiable_message(rowid)
-    database.delete_message(rowid)
+    require_modifiable_message(msg_id)
+    database.delete_message(msg_id)
     return redirect_prev_channel()
 
-@app.route('/api/edit/<rowid>', methods=['POST'])
-def api_edit(rowid):
+@app.route('/api/edit/<int:msg_id>', methods=['POST'])
+def api_edit(msg_id):
     require_authentic_request()
-    require_modifiable_message(rowid)
-    database.edit_message(rowid, flask.request.form['content'])
+    require_modifiable_message(msg_id)
+    database.edit_message(msg_id, flask.request.form['content'])
     return redirect_prev_channel()
 
-@app.route('/api/add_category/<rowid>', methods=['POST'])
-def api_add_category(rowid):
+@app.route('/api/add_category/<int:msg_id>', methods=['POST'])
+def api_add_category(msg_id):
     require_authentic_request()
-    require_modifiable_message(rowid)
-    database.add_message_category(rowid, flask.request.form['new_category'])
+    require_modifiable_message(msg_id)
+    database.add_message_category(msg_id, flask.request.form['new_category'])
     return redirect_prev_channel()
 
 @app.route('/api/channel_search', methods=['POST'])
@@ -128,8 +128,15 @@ def api_channel_search():
     channels = database.search_channels(term)
     return flask.render_template('channel_search.html', channels=channels, search_term=term)
 
-@app.route('/api/like/<rowid>', methods=['POST'])
-def api_like(rowid):
+@app.route('/api/like/<int:msg_id>', methods=['POST'])
+def api_like(msg_id):
     require_authentic_request()
-    database.toggle_message_like(flask.session['user'], rowid)
+    database.toggle_message_like(flask.session['user'], msg_id)
+    return redirect_prev_channel()
+
+@app.route('/api/delete_account', methods=['POST'])
+def api_delete_account():
+    require_authentic_request()
+    database.delete_account(flask.session['user'])
+    session_clear_login()
     return redirect_prev_channel()

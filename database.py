@@ -4,11 +4,11 @@ import werkzeug.security
 
 @dataclass
 class Message:
+    id: int
     username: str
     content: str
     channel: str
     likes: int
-    rowid: int
 
 def __connect():
     db = sqlite3.connect('database.db')
@@ -32,40 +32,38 @@ def __query(sql, args=None, one=False):
     finally:
         db.close()
 
-def message(rowid: int) -> Message:
-    sql = 'SELECT * FROM messages WHERE rowid = ?'
-    message = __query(sql, [rowid], one=True)
-    return message and Message(*message, rowid)
+def message(msg_id: int) -> Message:
+    sql = 'SELECT * FROM messages WHERE id = ?'
+    message = __query(sql, [msg_id], one=True)
+    return message and Message(*message)
 
-def message_categories(rowid: int) -> list[str]:
-    sql = 'SELECT category FROM categories WHERE message_rowid = ?'
-    return __query(sql, [rowid])
+def message_categories(msg_id: int) -> list[str]:
+    sql = 'SELECT category FROM categories WHERE message_id = ?'
+    return __query(sql, [msg_id])
 
-def delete_message(rowid: int) -> None:
-    sql = 'DELETE FROM messages WHERE rowid = ?'
-    __execute(sql, [rowid])
-    sql = 'DELETE FROM categories WHERE message_rowid = ?'
-    __execute(sql, [rowid])
+def delete_message(msg_id: int) -> None:
+    sql = 'DELETE FROM messages WHERE id = ?'
+    __execute(sql, [msg_id])
 
-def edit_message(rowid: int, content: str) -> None:
-    sql = 'UPDATE messages SET content = ? WHERE rowid = ?'
-    __execute(sql, [content, rowid])
+def edit_message(msg_id: int, content: str) -> None:
+    sql = 'UPDATE messages SET content = ? WHERE id = ?'
+    __execute(sql, [content, msg_id])
 
-def add_message_category(rowid: int, category: str) -> None:
-    sql = 'INSERT INTO categories (message_rowid, category) VALUES (?, ?)'
-    __execute(sql, [rowid, category])
+def add_message_category(msg_id: int, category: str) -> None:
+    sql = 'INSERT INTO categories (message_id, category) VALUES (?, ?)'
+    __execute(sql, [msg_id, category])
 
 def user_messages(username: str) -> list[Message]:
-    sql = 'SELECT *, rowid FROM messages WHERE username = ?'
+    sql = 'SELECT * FROM messages WHERE username = ?'
     return [Message(*fields) for fields in __query(sql, [username])]
 
 def channel_messages(channel: str) -> list[Message]:
-    sql = 'SELECT *, rowid FROM messages WHERE channel = ?'
+    sql = 'SELECT * FROM messages WHERE channel = ?'
     return [Message(*fields) for fields in __query(sql, [channel])]
 
 def category_messages(category: str) -> list[Message]:
-    sql = 'SELECT message_rowid FROM categories WHERE category = ?'
-    return [message(rowid) for rowid in __query(sql, [category])]
+    sql = 'SELECT message_id FROM categories WHERE category = ?'
+    return [message(msg_id) for msg_id in __query(sql, [category])]
 
 def categories() -> list[str]:
     return __query('SELECT DISTINCT category FROM categories')
@@ -81,7 +79,7 @@ def user_total_likes(username: str) -> int:
     return int(__query(sql, [username], one=True))
 
 def user_post_message(username: str, content: str, channel: str) -> None:
-    sql = 'INSERT INTO messages (username, content, channel, likes) VALUES (?, ?, ?, 0)'
+    sql = 'INSERT INTO messages (id, username, content, channel, likes) VALUES (NULL, ?, ?, ?, 0)'
     __execute(sql, [username, content, channel])
 
 def search_channels(term: str) -> list[str]:
@@ -101,18 +99,22 @@ def register_user(username: str, password: str) -> bool:
     except sqlite3.IntegrityError:
         return False
 
-def has_user_liked_message(username: str, rowid: int) -> bool:
-    sql = 'SELECT COUNT(*) FROM likes WHERE message_rowid = ? and username = ?'
-    return __query(sql, [rowid, username], one=True) != 0
+def has_user_liked_message(username: str, msg_id: int) -> bool:
+    sql = 'SELECT COUNT(*) FROM likes WHERE message_id = ? and username = ?'
+    return __query(sql, [msg_id, username], one=True) != 0
 
-def toggle_message_like(username: str, rowid: int) -> None:
-    if has_user_liked_message(username, rowid):
-        sql = 'DELETE FROM likes WHERE message_rowid = ? and username = ?'
-        __execute(sql, [rowid, username])
-        sql = 'UPDATE messages SET likes = likes - 1 WHERE rowid = ?'
-        __execute(sql, [rowid])
+def toggle_message_like(username: str, msg_id: int) -> None:
+    if has_user_liked_message(username, msg_id):
+        sql = 'DELETE FROM likes WHERE message_id = ? and username = ?'
+        __execute(sql, [msg_id, username])
+        sql = 'UPDATE messages SET likes = likes - 1 WHERE id = ?'
+        __execute(sql, [msg_id])
     else:
-        sql = 'INSERT INTO likes (message_rowid, username) VALUES (?, ?)'
-        __execute(sql, [rowid, username])
-        sql = 'UPDATE messages SET likes = likes + 1 WHERE rowid = ?'
-        __execute(sql, [rowid])
+        sql = 'INSERT INTO likes (message_id, username) VALUES (?, ?)'
+        __execute(sql, [msg_id, username])
+        sql = 'UPDATE messages SET likes = likes + 1 WHERE id = ?'
+        __execute(sql, [msg_id])
+
+def delete_account(username: str) -> None:
+    sql = 'DELETE FROM users WHERE username = ?'
+    __execute(sql, [username])

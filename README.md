@@ -11,10 +11,12 @@ Käyttäjä pystyy:
 - Julkaisemaan viestejä, kunhan on kirjautut sisään.
 - Poistamaan omia viestejään.
 - Muokkaamaan omia viestejään.
-- Lisäämään tykkäyksiä muiden käyttäjien viesteihin.
+- Lisäämään tykkäyksen muun käyttäjän viestille.
+- Poistamaan oman tykkäyksensä muun käyttäjän viestiltä.
 - Tarkastelemaan halutun käyttäjän viestejä ja tilastoja.
 - Luokittelemaan omat viestinsä.
 - Hakemaan viestejä luokittelun perusteella.
+- Poistamaan oman tilinsä.
 
 Sovellus estää CSRF-hyökkäykset kurssimateriaalin mukaisesti.
 
@@ -25,6 +27,3 @@ Luo tietokanta komennolla: `sqlite3 database.db < schema.sql`
 Käynnistä paikallinen flask palvelin: `flask run`
 
 Avaa viestipalvelu selaimessa: [http://localhost:5000](http://localhost:5000)
-
-## Mahdolliset tulevat parannukset
-- Salli tilin poisto
